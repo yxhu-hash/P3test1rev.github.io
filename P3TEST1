@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小三中文：詞語填充大冒險</title>
+  <style>
+    :root {
+      --primary: #4A90E2;
+      --secondary: #F5A623;
+      --success: #22C55E;
+      --danger: #EF4444;
+      --bg: #F0F4F8;
+      --card-bg: #FFFFFF;
+      --text: #333333;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "DFKai-SB", "BiauKai", "Kaiti TC", "KaiTi", "標楷體", serif;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .game-container {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 680px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 24px;
+      border: 4px solid #E2E8F0;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 2px dashed #CBD5E1;
+      padding-bottom: 12px;
+    }
+    .title-badge {
+      background: #EEF2FF;
+      color: #4F46E5;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: bold;
+      font-size: 1.05rem;
+    }
+    .score-board {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--secondary);
+    }
+    .progress-bar-container {
+      width: 100%;
+      background: #E2E8F0;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #4A90E2, #22C55E);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .question-box {
+      background: #F8FAFC;
+      border: 2px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 22px;
+      font-size: 1.35rem;
+      line-height: 1.8;
+      margin-bottom: 24px;
+      min-height: 110px;
+      display: flex;
+      align-items: center;
+      font-weight: normal;
+      word-break: break-all;
+    }
+    .blank-placeholder {
+      display: inline-block;
+      min-width: 90px;
+      border-bottom: 3px solid #4F46E5;
+      color: #4F46E5;
+      text-align: center;
+      font-weight: bold;
+      padding: 0 6px;
+      margin: 0 4px;
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .opt-btn {
+      background: #FFFFFF;
+      border: 2px solid #CBD5E1;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 1.25rem;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 0 #CBD5E1;
+      word-break: break-all;
+    }
+    .opt-btn:hover {
+      background: #F1F5F9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #CBD5E1;
+    }
+    .opt-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #CBD5E1;
+    }
+    .opt-btn.correct {
+      background: #DCFCE7 !important;
+      border-color: #22C55E !important;
+      color: #15803D !important;
+      box-shadow: 0 4px 0 #22C55E !important;
+    }
+    .opt-btn.wrong {
+      background: #FEE2E2 !important;
+      border-color: #EF4444 !important;
+      color: #B91C1C !important;
+      box-shadow: 0 4px 0 #EF4444 !important;
+    }
+    .feedback-box {
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      display: none;
+      line-height: 1.6;
+    }
+    .feedback-box.correct {
+      background: #DCFCE7;
+      color: #166534;
+      border: 1px solid #86EFAC;
+    }
+    .feedback-box.wrong {
+      background: #FEE2E2;
+      color: #991B1B;
+      border: 1px solid #FCA5A5;
+    }
+    .action-btn {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 4px 0 #2B6CB0;
+    }
+    .action-btn:hover {
+      background: #3B82F6;
+    }
+    .action-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #2B6CB0;
+    }
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: 30px 10px;
+    }
+    .result-screen h2 {
+      font-size: 2.2rem;
+      color: #1E293B;
+      margin-bottom: 14px;
+    }
+    .result-score {
+      font-size: 3.2rem;
+      font-weight: bold;
+      color: #4F46E5;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-container">
+  <!-- 進行遊戲區域 -->
+  <div id="play-area">
+    <header>
+      <span class="title-badge" id="lesson-tag">三上 1冊</span>
+      <div class="score-board">得分：<span id="score">0</span></div>
+    </header>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <div style="font-size:1.05rem; color:#64748B; margin-bottom:10px;">
+      第 <span id="q-index">1</span> / <span id="q-total">43</span> 題：把適當的詞語填在橫線上
+    </div>
+
+    <div class="question-box" id="question-text">
+      載入中...
+    </div>
+
+    <div class="options-grid" id="options-container"></div>
+
+    <div class="feedback-box" id="feedback"></div>
+    <button class="action-btn" id="next-btn" onclick="nextQuestion()">下一題 ➔</button>
+  </div>
+
+  <!-- 結算畫面 -->
+  <div class="result-screen" id="result-area">
+    <h2>🎉 溫習大挑戰完成！</h2>
+    <p style="color:#64748B; font-size:1.15rem;">你已完成範圍內全部 43 個詞語的強化訓練！</p>
+    <div class="result-score" id="final-score">0 / 43</div>
+    <p id="evaluation-text" style="font-size:1.3rem; margin-bottom: 24px; font-weight:bold;"></p>
+    <button class="action-btn" style="display:inline-block;" onclick="restartGame()">重新挑戰 🔄</button>
+  </div>
+</div>
+
+<script>
+// 音效生成器 (採用延遲初始化，防止瀏覽器 Autoplay 政策導致載入卡死)
+let audioCtx = null;
+function getAudioContext() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function playBeep(freq, type, duration) {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    osc.stop(ctx.currentTime + duration);
+  } catch(e) {
+    // 靜音回退
+  }
+}
+
+function playCorrectSound() {
+  playBeep(523.25, 'sine', 0.15);
+  setTimeout(() => playBeep(659.25, 'sine', 0.2), 100);
+}
+
+function playWrongSound() {
+  playBeep(220, 'triangle', 0.25);
+}
+
+// 43道全覆蓋題庫數據（嚴格按照考卷填充題型，絕不重複考卷原題）
+// 已統一將「著」改為「着」，「裡」改為「裏」
+const quizData = [
+  // 三上 1冊 第1課 (9題)
+  { lesson: "三上 1冊 第1課", before: "那條掉在岸上的小魚不斷痛苦地", after: "着，希望能跳回河水裏。", answer: "掙扎", options: ["掙扎", "練習", "掏", "重複"], hint: "「掙扎」指用力擺脫束縛或困境。" },
+  { lesson: "三上 1冊 第1課", before: "天色漸漸暗了下來，媽媽見哥哥還沒回家，心裏十分", after: "。", answer: "擔心", options: ["擔心", "享受", "感動", "誠懇"], hint: "「擔心」表示放心不下、牽掛。" },
+  { lesson: "三上 1冊 第1課", before: "這本童話書的情節奇妙非凡，作者豐富的", after: "力真令人佩服。", answer: "想像", options: ["想像", "檔案", "材料", "勝利"], hint: "「想像」指在腦海中構想出新形象的能力。" },
+  { lesson: "三上 1冊 第1課", before: "小妹妹最", after: "打雷的巨響，每次一聽到就躲進被窩裏。", answer: "害怕", options: ["害怕", "溫柔", "急促", "羞愧"], hint: "「害怕」表示恐懼、畏懼。" },
+  { lesson: "三上 1冊 第1課", before: "要想寫出一手漂亮的毛筆字，我們必須每天持之以恆地", after: "。", answer: "練習", options: ["練習", "掙扎", "教導", "重複"], hint: "「練習」指反覆研習以求精熟。" },
+  { lesson: "三上 1冊 第1課", before: "在陳教練的親切", after: "下，膽小的志明終於鼓起勇氣跳進水池。", answer: "鼓勵", options: ["鼓勵", "噪音", "刺耳", "憤怒"], hint: "「鼓勵」指激發並勉勵他人。" },
+  { lesson: "三上 1冊 第1課", before: "那位護士阿姨笑容滿面，態度非常", after: "，讓病人感到很安心。", answer: "親切", options: ["親切", "劇烈", "急促", "匆忙"], hint: "「親切」形容熱情而關切、和藹可親。" },
+  { lesson: "三上 1冊 第1課", before: "老師臉上帶着溫暖的", after: "，耐心地聽着同學們分享假期的趣事。", answer: "微笑", options: ["微笑", "噪音", "材料", "檔案"], hint: "「微笑」指不顯露聲色、輕微的笑容。" },
+  { lesson: "三上 1冊 第1課", before: "春風", after: "地吹拂着大地，路旁的柳樹隨風輕輕搖曳。", answer: "溫柔", options: ["溫柔", "刺耳", "急促", "劇烈"], hint: "「溫柔」形容溫和柔順。" },
+
+  // 三上 1冊 第2課 (9題)
+  { lesson: "三上 1冊 第2課", before: "馬路上汽車奔馳產生的巨大", after: "，吵得附近的居民無法入睡。", answer: "噪音", options: ["噪音", "微笑", "材料", "練習"], hint: "「噪音」指吵鬧、妨礙安寧的聲音。" },
+  { lesson: "三上 1冊 第2課", before: "剛吃飽飯後，我們不應該進行", after: "的跑步運動，以免肚子痛。", answer: "劇烈", options: ["劇烈", "輕快", "親切", "溫柔"], hint: "「劇烈」形容猛烈、強烈。" },
+  { lesson: "三上 1冊 第2課", before: "隨着這首曲調", after: "的音樂，同學們愉快地在操場上跳起舞來。", answer: "輕快", options: ["輕快", "刺耳", "急促", "劇烈"], hint: "「輕快」形容輕鬆愉快、節奏明朗。" },
+  { lesson: "三上 1冊 第2課", before: "這本冒險故事十分精彩，弟弟看得", after: "，連叫他吃飯都沒聽見。", answer: "津津有味", options: ["津津有味", "平易近人", "面紅耳赤", "筋疲力盡"], hint: "「津津有味」形容非常有興味。" },
+  { lesson: "三上 1冊 第2課", before: "假日時，坐在公園樹蔭下吹着微風閱讀，真是一種", after: "。", answer: "享受", options: ["享受", "辛苦", "付出", "提問"], hint: "「享受」指在精神或物質上獲得滿足。" },
+  { lesson: "三上 1冊 第2課", before: "金屬互相刮擦發出的尖銳聲音非常", after: "，讓人忍不住捂住雙耳。", answer: "刺耳", options: ["刺耳", "溫柔", "親切", "輕快"], hint: "「刺耳」形容聲音尖銳難聽。" },
+  { lesson: "三上 1冊 第2課", before: "清潔工人在烈日下打掃街道，他們的工作十分", after: "。", answer: "辛苦", options: ["辛苦", "舒適", "輕快", "溫柔"], hint: "「辛苦」指勞累勞苦。" },
+  { lesson: "三上 1冊 第2課", before: "做任何事情只要肯努力", after: "汗水，將來一定能收穫豐碩的成果。", answer: "付出", options: ["付出", "享受", "掏", "重複"], hint: "「付出」指交出、耗費心力或代價。" },
+  { lesson: "三上 1冊 第2課", before: "坐在這張柔軟的沙發上休息，感覺特別", after: "放鬆。", answer: "舒適", options: ["舒適", "辛苦", "劇烈", "匆忙"], hint: "「舒適」指舒服適意。" },
+
+  // 三上 1冊 第4課 (9題)
+  { lesson: "三上 1冊 第4課", before: "小明為自己剛才無心的失言，向班長表達了最", after: "的歉意。", answer: "誠懇", options: ["誠懇", "匆忙", "刺耳", "憤怒"], hint: "「誠懇」形容真誠懇切。" },
+  { lesson: "三上 1冊 第4課", before: "在父母和師長的悉心", after: "下，我們學會了許多做人的道理。", answer: "教導", options: ["教導", "練習", "掙扎", "檔案"], hint: "「教導」指教育訓導。" },
+  { lesson: "三上 1冊 第4課", before: "因為早上起得太晚，哥哥抓起書包，", after: "地衝出家門趕搭校巴。", answer: "匆忙", options: ["匆忙", "不慌不忙", "舒適", "溫柔"], hint: "「匆忙」指急急忙忙的樣子。" },
+  { lesson: "三上 1冊 第4課", before: "這位著名的校長態度親切、", after: "，非常樂意和小朋友們交談。", answer: "平易近人", options: ["平易近人", "津津有味", "哄堂大笑", "筋疲力盡"], hint: "「平易近人」比喻態度謙和，容易接近。" },
+  { lesson: "三上 1冊 第4課", before: "", after: "今天下着濛濛細雨，但是同學們依然準時到達球場集合。", answer: "雖然", options: ["雖然", "幾乎", "逐漸", "重複"], hint: "「雖然」為轉折連詞，常與「但是」搭配。" },
+  { lesson: "三上 1冊 第4課", before: "消防員接獲報警後，以", after: "的步伐登上消防車趕赴現場。", answer: "快速", options: ["快速", "溫柔", "舒適", "親切"], hint: "「快速」指速度高、速度快。" },
+  { lesson: "三上 1冊 第4課", before: "剛跑完四百米障礙賽，運動員的呼吸顯得十分", after: "。", answer: "急促", options: ["急促", "輕快", "誠懇", "舒適"], hint: "「急促」形容呼吸或步伐快而短促。" },
+  { lesson: "三上 1冊 第4課", before: "看到義工們無私照顧孤寡老人，在場的人都深受", after: "。", answer: "感動", options: ["感動", "擔心", "害怕", "羞愧"], hint: "「感動」指受外界人事物觸動而產生共鳴。" },
+  { lesson: "三上 1冊 第4課", before: "做人必須講求信用，做一個言行一致、", after: "守信的好孩子。", answer: "誠實", options: ["誠實", "匆忙", "劇烈", "急促"], hint: "「誠實」指真誠老實，不虛假撒謊。" },
+
+  // 三上 1冊 第7課 (8題)
+  { lesson: "三上 1冊 第7課", before: "外面的寒風呼呼地吹着，走在街上的行人凍得直", after: "。", answer: "打冷顫", options: ["打冷顫", "哄堂大笑", "面紅耳赤", "筋疲力盡"], hint: "「打冷顫」形容因寒冷或害怕而身體發抖。" },
+  { lesson: "三上 1冊 第7課", before: "魔術師從空無一物的高禮帽中，竟然", after: "出了一隻活潑的白兔。", answer: "掏", options: ["掏", "重複", "提問", "練習"], hint: "「掏」指伸手探取東西的動作。" },
+  { lesson: "三上 1冊 第7課", before: "他們兩人在走廊上為了爭執玩具而吵得", after: "，誰也不肯相讓。", answer: "面紅耳赤", options: ["面紅耳赤", "津津有味", "平易近人", "不慌不忙"], hint: "「面紅耳赤」形容因羞愧、焦急或生氣而臉色發紅。" },
+  { lesson: "三上 1冊 第7課", before: "在接力賽跑的最後十米，各隊健兒都", after: "地向終點衝刺。", answer: "拼命", options: ["拼命", "雖然", "溫柔", "舒適"], hint: "「拼命」指竭盡全力。" },
+  { lesson: "三上 1冊 第7課", before: "經過大半天的遠足登山，大家都累得", after: "，只想躺下休息。", answer: "筋疲力盡", options: ["筋疲力盡", "平易近人", "津津有味", "不慌不忙"], hint: "「筋疲力盡」形容非常疲勞，一點力氣也沒有。" },
+  { lesson: "三上 1冊 第7課", before: "面對突然發生的意外情況，班長", after: "地組織大家有序撤離。", answer: "不慌不忙", options: ["不慌不忙", "匆忙", "急促", "劇烈"], hint: "「不慌不忙」形容舉止從容鎮定。" },
+  { lesson: "三上 1冊 第7課", before: "天邊的烏雲漸漸散開，溫暖的陽光", after: "逐漸", options: ["逐漸", "幾乎", "雖然", "重複"], hint: "「逐漸」表示程度或數量隨時間漸進增加。" },
+  { lesson: "三上 1冊 第7課", before: "經過全隊團結奮戰，我們學校終於贏得了這場籃球賽的", after: "。", answer: "勝利", options: ["勝利", "材料", "檔案", "噪音"], hint: "「勝利」指在競賽或戰鬥中戰勝對方。" },
+
+  // 三上 2冊 第10課 (8題)
+  { lesson: "三上 2冊 第10課", before: "老師請電腦組長把各組的活動照片", after: "存入電腦硬盤中。", answer: "檔案", options: ["檔案", "材料", "噪音", "教導"], hint: "「檔案」指歸檔保存的文獻、資料或電子文檔。" },
+  { lesson: "三上 2冊 第10課", before: "小丑在台上扮了一個滑稽的鬼臉，逗得全場觀眾", after: "。", answer: "哄堂大笑", options: ["哄堂大笑", "打冷顫", "筋疲力盡", "面紅耳赤"], hint: "「哄堂大笑」形容滿屋子的人同時大笑。" },
+  { lesson: "三上 2冊 第10課", before: "看見有人故意在公園長椅上亂塗亂畫，大家心中都非常", after: "。", answer: "憤怒", options: ["憤怒", "擔心", "親切", "誠懇"], hint: "「憤怒」指極度生氣、發怒。" },
+  { lesson: "三上 2冊 第10課", before: "為了確保大家都能記住集合地點，老師將注意事項", after: "說明了一次。", answer: "重複", options: ["重複", "掏", "教導", "掙扎"], hint: "「重複」指把做過或說過的事情再做或再說一次。" },
+  { lesson: "三上 2冊 第10課", before: "小強因為自己撒了謊而感到無比", after: "，低着頭不敢直視老師。", answer: "羞愧", options: ["羞愧", "享受", "舒適", "誠實"], hint: "「羞愧」指感到自卑、慚愧、難為情。" },
+  { lesson: "三上 2冊 第10課", before: "課堂上如果遇到不懂的詞語，我們要勇敢向老師", after: "請教。", answer: "提問", options: ["提問", "掏", "重複", "掙扎"], hint: "「提問」指提出問題。" },
+  { lesson: "三上 2冊 第10課", before: "今天這場大雨非常猛烈，路面的積水", after: "淹到了行人的膝蓋。", answer: "幾乎", options: ["幾乎", "雖然", "逐漸", "重複"], hint: "「幾乎」表示十分接近、差一點。" },
+  { lesson: "三上 2冊 第10課", before: "做勞作課時，桌上擺滿了彩紙、膠水和剪刀等各種製作", after: "。", answer: "材料", options: ["材料", "檔案", "噪音", "勝利"], hint: "「材料」指可用於製造器具或成品的物質。" }
+];
+
+let currentIndex = 0;
+let score = 0;
+let canAnswer = true;
+
+function initGame() {
+  currentIndex = 0;
+  score = 0;
+  const scoreEl = document.getElementById('score');
+  const totalEl = document.getElementById('q-total');
+  const playArea = document.getElementById('play-area');
+  const resultArea = document.getElementById('result-area');
+
+  if (scoreEl) scoreEl.innerText = score;
+  if (totalEl) totalEl.innerText = quizData.length;
+  if (playArea) playArea.style.display = 'block';
+  if (resultArea) resultArea.style.display = 'none';
+
+  loadQuestion();
+}
+
+function loadQuestion() {
+  canAnswer = true;
+  const currentQ = quizData[currentIndex];
+
+  document.getElementById('lesson-tag').innerText = currentQ.lesson;
+  document.getElementById('q-index').innerText = currentIndex + 1;
+
+  // 修正進度條計算公式，讓第1題能正確顯示當前跨出的第一步
+  const progressPercent = ((currentIndex + 1) / quizData.length) * 100;
+  document.getElementById('progress').style.width = progressPercent + '%';
+
+  // 渲染題幹
+  const questionBox = document.getElementById('question-text');
+  questionBox.innerHTML = `${currentQ.before}<span class="blank-placeholder" id="user-blank">（　　）</span>${currentQ.after}`;
+
+  // 隱藏反饋與下一題按鈕
+  const feedback = document.getElementById('feedback');
+  const nextBtn = document.getElementById('next-btn');
+  feedback.style.display = 'none';
+  feedback.className = 'feedback-box';
+  nextBtn.style.display = 'none';
+
+  // 渲染選項按鈕（打亂順序）
+  const optionsGrid = document.getElementById('options-container');
+  optionsGrid.innerHTML = '';
+
+  const shuffledOptions = [...currentQ.options].sort(() => Math.random() - 0.5);
+
+  shuffledOptions.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerText = opt;
+    btn.onclick = () => selectOption(btn, opt, currentQ);
+    optionsGrid.appendChild(btn);
+  });
+}
+
+function selectOption(selectedBtn, chosenAnswer, currentQ) {
+  if (!canAnswer) return;
+  canAnswer = false;
+
+  const isCorrect = (chosenAnswer === currentQ.answer);
+  const feedback = document.getElementById('feedback');
+  const nextBtn = document.getElementById('next-btn');
+  const blankEl = document.getElementById('user-blank');
+  const allBtns = document.querySelectorAll('.opt-btn');
+
+  if (blankEl) {
+    blankEl.innerText = chosenAnswer;
+  }
+
+  // 自動解鎖並播放音效
+  getAudioContext();
+
+  if (isCorrect) {
+    score++;
+    document.getElementById('score').innerText = score;
+    selectedBtn.classList.add('correct');
+    playCorrectSound();
+    feedback.innerHTML = `<strong>🎉 太棒了！答對了！</strong><br>${currentQ.hint}`;
+    feedback.className = 'feedback-box correct';
+  } else {
+    selectedBtn.classList.add('wrong');
+    playWrongSound();
+    allBtns.forEach(btn => {
+      if (btn.innerText === currentQ.answer) {
+        btn.classList.add('correct');
+      }
+    });
+    feedback.innerHTML = `<strong>❌ 答錯了，再接再厲！</strong><br>正確答案是：<strong>【${currentQ.answer}】</strong><br>${currentQ.hint}`;
+    feedback.className = 'feedback-box wrong';
+  }
+
+  feedback.style.display = 'block';
+  nextBtn.style.display = 'block';
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex < quizData.length) {
+    loadQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById('play-area').style.display = 'none';
+  const resultArea = document.getElementById('result-area');
+  resultArea.style.display = 'block';
+
+  document.getElementById('progress').style.width = '100%';
+  document.getElementById('final-score').innerText = `${score} / ${quizData.length}`;
+
+  const evalText = document.getElementById('evaluation-text');
+  const ratio = score / quizData.length;
+  if (ratio >= 0.9) {
+    evalText.innerText = "🌟 詞語大宗師！所有課文詞語你都已經完全掌握了！";
+    evalText.style.color = "#15803D";
+  } else if (ratio >= 0.7) {
+    evalText.innerText = "👍 表現出色！基礎很扎實，多加複習錯題就完美了！";
+    evalText.style.color = "#2563EB";
+  } else {
+    evalText.innerText = "💪 繼續加油！把不熟悉的詞語記在筆記本上多溫習幾次吧！";
+    evalText.style.color = "#D97706";
+  }
+}
+
+function restartGame() {
+  initGame();
+}
+
+// 頁面載入後自動啟動
+window.addEventListener('DOMContentLoaded', () => {
+  initGame();
+});
+</script>
+</body>
+</html>
